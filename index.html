@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>绘画参考方框生成器</title>
+    <style>
+        :root {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --border-color: #d2d2d7;
+            --accent-color: #007aff;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --canvas-bg-1: #e5e5e7;
+            --canvas-bg-2: #f5f5f7;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #000000;
+                --bg-secondary: #1c1c1e;
+                --text-primary: #f5f5f7;
+                --text-secondary: #86868b;
+                --border-color: #38383a;
+                --accent-color: #0a84ff;
+                --shadow-color: rgba(0, 0, 0, 0.5);
+                --canvas-bg-1: #2c2c2e;
+                --canvas-bg-2: #1c1c1e;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .main-content {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .controls {
+            flex: 0 0 320px;
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .control-group input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.1);
+        }
+
+        .control-group input[type="color"] {
+            width: 100%;
+            height: 56px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            background: var(--bg-secondary);
+            padding: 4px;
+        }
+
+        .btn-download {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            background: var(--accent-color);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+            margin-top: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(10, 132, 255, 0.3);
+            filter: brightness(1.05);
+        }
+
+        .btn-download:active {
+            transform: translateY(0);
+            filter: brightness(0.95);
+        }
+
+        .preview {
+            flex: 1;
+            min-width: 300px;
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px var(--shadow-color);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .preview h2 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .canvas-wrapper {
+            background: repeating-conic-gradient(var(--canvas-bg-1) 0% 25%, var(--canvas-bg-2) 0% 50%) 50% / 20px 20px;
+            padding: 20px;
+            border-radius: 12px;
+            overflow: auto;
+            max-width: 100%;
+            border: 1px solid var(--border-color);
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .info {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .controls {
+                flex: none;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 绘画参考方框生成器</h1>
+        
+        <div class="main-content">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="cellWidth">方格宽度 (像素)</label>
+                    <input type="number" id="cellWidth" value="60" min="10" max="500">
+                </div>
+
+                <div class="control-group">
+                    <label for="lineWidth">线条宽度 (像素)</label>
+                    <input type="number" id="lineWidth" value="2" min="1" max="20">
+                </div>
+
+                <div class="control-group">
+                    <label for="cols">横排方格数量</label>
+                    <input type="number" id="cols" value="5" min="1" max="50">
+                </div>
+
+                <div class="control-group">
+                    <label for="rows">竖排方格数量</label>
+                    <input type="number" id="rows" value="4" min="1" max="50">
+                </div>
+
+                <div class="control-group">
+                    <label for="lineColor">线条颜色</label>
+                    <input type="color" id="lineColor" value="#000000">
+                </div>
+
+                <button class="btn-download" id="downloadBtn">⬇️ 下载 PNG</button>
+            </div>
+
+            <div class="preview">
+                <h2>预览</h2>
+                <div class="canvas-wrapper">
+                    <canvas id="canvas"></canvas>
+                </div>
+                <div class="info" id="info">图片尺寸: -</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const cellWidthInput = document.getElementById('cellWidth');
+        const lineWidthInput = document.getElementById('lineWidth');
+        const colsInput = document.getElementById('cols');
+        const rowsInput = document.getElementById('rows');
+        const lineColorInput = document.getElementById('lineColor');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const infoDiv = document.getElementById('info');
+
+        function drawGrid() {
+            const cellWidth = parseInt(cellWidthInput.value) || 60;
+            const lineWidth = parseInt(lineWidthInput.value) || 2;
+            const cols = parseInt(colsInput.value) || 5;
+            const rows = parseInt(rowsInput.value) || 4;
+            const lineColor = lineColorInput.value;
+
+            const totalWidth = cols * cellWidth + (cols + 1) * lineWidth;
+            const totalHeight = rows * cellWidth + (rows + 1) * lineWidth;
+
+            canvas.width = totalWidth;
+            canvas.height = totalHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = lineColor;
+            ctx.lineWidth = lineWidth;
+
+            ctx.beginPath();
+            for (let i = 0; i <= cols; i++) {
+                const x = i * (cellWidth + lineWidth) + lineWidth / 2;
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, totalHeight);
+            }
+            for (let i = 0; i <= rows; i++) {
+                const y = i * (cellWidth + lineWidth) + lineWidth / 2;
+                ctx.moveTo(0, y);
+                ctx.lineTo(totalWidth, y);
+            }
+            ctx.stroke();
+
+            infoDiv.textContent = `图片尺寸: ${totalWidth} × ${totalHeight} 像素`;
+        }
+
+        function downloadPNG() {
+            const link = document.createElement('a');
+            link.download = `grid-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        cellWidthInput.addEventListener('input', drawGrid);
+        lineWidthInput.addEventListener('input', drawGrid);
+        colsInput.addEventListener('input', drawGrid);
+        rowsInput.addEventListener('input', drawGrid);
+        lineColorInput.addEventListener('input', drawGrid);
+        downloadBtn.addEventListener('click', downloadPNG);
+
+        drawGrid();
+    </script>
+</body>
+</html>
